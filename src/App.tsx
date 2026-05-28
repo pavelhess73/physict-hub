@@ -6,7 +6,6 @@ import {
   Settings, 
   Home, 
   RotateCcw,
-  Monitor,
   Download,
   Upload,
   LogOut,
