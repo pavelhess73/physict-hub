@@ -8,9 +8,10 @@ import {
   RotateCcw,
   Monitor,
   Download,
-  Upload
+  Upload,
+  LogOut
 } from 'lucide-react';
-import { databases } from './lib/appwrite';
+import { databases, account } from './lib/appwrite';
 import './App.css';
 
 // Mock data pro témata
@@ -28,24 +29,62 @@ const DOC_ID = 'settings_doc';
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isCloudSyncing, setIsCloudSyncing] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authLoading, setAuthLoading] = useState(true);
   
   const [teacherName, setTeacherName] = useState(() => localStorage.getItem('teacherName') || 'pane učiteli');
   const [studentsRaw, setStudentsRaw] = useState(() => localStorage.getItem('studentsList') || 'Petr, Jana, Martin, Lucie, David, Elena');
   
   const students = studentsRaw.split(',').map(s => s.trim()).filter(s => s !== '');
 
+  // Kontrola přihlášení při startu
   useEffect(() => {
-    const loadFromCloud = async () => {
+    const checkUser = async () => {
       try {
-        const response = await databases.getDocument(DB_ID, COLLECTION_ID, DOC_ID);
-        setTeacherName(response.teacherName);
-        setStudentsRaw(response.studentsRaw);
-      } catch (error) {
-        console.log('Cloud data zatím neexistují.');
+        const session = await account.get();
+        setUser(session);
+        await loadFromCloud();
+      } catch (e) {
+        setUser(null);
+      } finally {
+        setAuthLoading(false);
       }
     };
-    loadFromCloud();
+    checkUser();
   }, []);
+
+  const loadFromCloud = async () => {
+    try {
+      const response = await databases.getDocument(DB_ID, COLLECTION_ID, DOC_ID);
+      setTeacherName(response.teacherName);
+      setStudentsRaw(response.studentsRaw);
+    } catch (error) {
+      console.log('Cloud data zatím neexistují.');
+    }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await account.createEmailPasswordSession(email, password);
+      const session = await account.get();
+      setUser(session);
+      await loadFromCloud();
+    } catch (error: any) {
+      alert('Chyba přístupu: ' + error.message);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await account.deleteSession('current');
+      setUser(null);
+    } catch (error) {
+      console.error('Chyba při odhlášení', error);
+    }
+  };
 
   useEffect(() => {
     localStorage.setItem('teacherName', teacherName);
@@ -101,15 +140,61 @@ function App() {
     }, 1000);
   };
 
+  // --- LOADING SCREEN ---
+  if (authLoading) return <div className="app-container" style={{justifyContent:'center', alignItems:'center'}}><div className="matrix-text">INITIALIZING SYSTEM...</div></div>;
+
+  // --- LOGIN SCREEN ---
+  if (!user) {
+    return (
+      <div className="app-container" style={{ justifyContent: 'center', alignItems: 'center', background: '#050505' }}>
+        <div className="glass-card" style={{ width: '350px', border: '1px solid var(--matrix-green)', boxShadow: '0 0 20px rgba(0,255,65,0.1)' }}>
+          <div className="logo" style={{ justifyContent: 'center', marginBottom: '2rem' }}>Phys<span>ICT</span> Hub</div>
+          <div className="card-title" style={{ textAlign: 'center', color: 'var(--matrix-green)' }}>RESTRICTED ACCESS</div>
+          <form onSubmit={handleLogin}>
+            <div style={{ marginBottom: '1rem' }}>
+              <input 
+                type="email" 
+                placeholder="ACCESS_EMAIL" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={{ width: '100%', padding: '12px', background: '#000', border: '1px solid #333', color: 'var(--matrix-green)', fontFamily: 'monospace', borderRadius: '4px' }}
+                required 
+              />
+            </div>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <input 
+                type="password" 
+                placeholder="ACCESS_PASSWORD" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{ width: '100%', padding: '12px', background: '#000', border: '1px solid #333', color: 'var(--matrix-green)', fontFamily: 'monospace', borderRadius: '4px' }}
+                required 
+              />
+            </div>
+            <button type="submit" className="btn-primary" style={{ width: '100%', background: 'var(--matrix-green)', color: '#000', fontWeight: 'bold', letterSpacing: '2px' }}>
+              ENTER SYSTEM
+            </button>
+          </form>
+          <div style={{ marginTop: '1rem', fontSize: '0.6rem', textAlign: 'center', color: '#333', fontFamily: 'monospace' }}>
+            SECURE_ENCRYPTION_ENABLED // NODE_AUTH_V1
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-container">
       <aside className="sidebar">
         <div className="logo">Phys<span>ICT</span> Hub</div>
-        <nav>
+        <nav style={{ flex: 1 }}>
           <div className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}><Home size={18} /> Dashboard</div>
           <div className={`nav-item ${activeTab === 'topics' ? 'active' : ''}`} onClick={() => setActiveTab('topics')}><Activity size={18} /> Témata Výuky</div>
           <div className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}><Settings size={18} /> Nastavení</div>
         </nav>
+        <div className="nav-item" onClick={handleLogout} style={{ color: '#ff4b2b', marginTop: 'auto' }}>
+          <LogOut size={18} /> Odhlásit se
+        </div>
       </aside>
 
       <main className="main-content">
@@ -221,5 +306,3 @@ function App() {
 }
 
 export default App;
-/ /   A u t o m a t i o n   t e s t :   C o n n e c t i o n   e s t a b l i s h e d  
- 
