@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Activity, 
   Cpu, 
-  Timer, 
   ExternalLink, 
   Settings, 
   Home, 
