@@ -1,8 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vitejs.dev/config/
+// Konfigurace optimalizovaná pro Appwrite Hosting
 export default defineConfig({
   plugins: [react()],
-  base: './', // Důležité pro GitHub Pages
+  base: '/', 
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+  }
 })

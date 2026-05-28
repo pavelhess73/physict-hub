@@ -1,0 +1,21 @@
+{
+    "projectId": "VASI_PROJECT_ID",
+    "projectName": "physict-hub",
+    "settings": {
+        "serviceStatus": {
+            "databases": true,
+            "storage": true,
+            "functions": true,
+            "users": true,
+            "teams": true,
+            "collections": true,
+            "buckets": true,
+            "messaging": true
+        }
+    },
+    "web": {
+        "name": "PhysICT Hub",
+        "runtime": "static",
+        "path": "dist"
+    }
+}

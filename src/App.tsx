@@ -15,7 +15,6 @@ import { databases, account } from './lib/appwrite';
 import curriculumData from './data/curriculum.json';
 import './App.css';
 
-// Konstanty pro Appwrite
 const DB_ID = 'main_db';
 const COLLECTION_ID = 'user_data';
 const DOC_ID = 'settings_doc';
@@ -54,7 +53,7 @@ function App() {
       setTeacherName(response.teacherName);
       setStudentsRaw(response.studentsRaw);
     } catch (error) {
-      console.log('Cloud data zatím neexistují.');
+      console.log('Zatím bez dat v cloudu.');
     }
   };
 
@@ -66,7 +65,7 @@ function App() {
       setUser(session);
       await loadFromCloud();
     } catch (error: any) {
-      alert('Chyba přístupu: ' + error.message + '\n\nUjistěte se, že máte v src/lib/appwrite.ts správné Project ID.');
+      alert(`PŘÍSTUP ODMIETNUT: ${error.message}\n\nTip: Zkontrolujte, zda máte v Appwrite konzoli v sekci Settings -> Platforms přidanou doménu, na které web běží.`);
     }
   };
 
@@ -75,7 +74,7 @@ function App() {
       await account.deleteSession('current');
       setUser(null);
     } catch (error) {
-      console.error('Chyba při odhlášení', error);
+      console.error('Logout error', error);
     }
   };
 
@@ -92,9 +91,9 @@ function App() {
       } catch (e) {
         await databases.createDocument(DB_ID, COLLECTION_ID, DOC_ID, { teacherName, studentsRaw });
       }
-      alert('Cloud synchronizace byla úspěšná! 🚀');
-    } catch (error) {
-      alert('Chyba synchronizace: Zkontrolujte nastavení databáze v Appwrite.');
+      alert('SYNCHRONIZACE DOKONČENA 🛰️');
+    } catch (error: any) {
+      alert('CHYBA CLOUDU: ' + error.message);
     } finally {
       setIsCloudSyncing(false);
     }
@@ -133,7 +132,11 @@ function App() {
     }, 1000);
   };
 
-  if (authLoading) return <div className="app-container" style={{justifyContent:'center', alignItems:'center', height: '100vh', width: '100vw'}}><div className="matrix-text">INITIALIZING SYSTEM...</div></div>;
+  if (authLoading) return (
+    <div className="app-container" style={{justifyContent:'center', alignItems:'center', height:'100vh', width:'100vw'}}>
+      <div className="matrix-text" style={{fontSize:'1.2rem'}}>SYSTEM_INITIALIZING...</div>
+    </div>
+  );
 
   if (!user) {
     return (
@@ -142,47 +145,45 @@ function App() {
         alignItems: 'center', 
         height: '100vh', 
         width: '100vw',
-        background: '#050505',
-        display: 'flex',
-        flexDirection: 'column'
+        background: '#050505'
       }}>
         <div className="glass-card" style={{ 
-          width: '350px', 
+          width: '380px', 
           border: '1px solid var(--matrix-green)', 
-          boxShadow: '0 0 30px rgba(0,255,65,0.15)',
-          padding: '2.5rem'
+          boxShadow: '0 0 40px rgba(0,255,65,0.1)',
+          padding: '3rem'
         }}>
-          <div className="logo" style={{ justifyContent: 'center', marginBottom: '2rem', fontSize: '2rem' }}>Phys<span>ICT</span> Hub</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', marginBottom: '1.5rem', color: 'var(--matrix-green)', fontSize: '0.8rem', letterSpacing: '1px' }}>
-            <Terminal size={14} /> SECURITY CHECK REQUIRED
+          <div className="logo" style={{ justifyContent: 'center', marginBottom: '2.5rem', fontSize: '2.2rem' }}>Phys<span>ICT</span> Hub</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', marginBottom: '2rem', color: 'var(--matrix-green)', fontSize: '0.75rem', letterSpacing: '2px', opacity: 0.8 }}>
+            <Terminal size={14} /> ENCRYPTED_LOGIN_REQUIRED
           </div>
           <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: '1rem' }}>
+            <div style={{ marginBottom: '1.2rem' }}>
               <input 
                 type="email" 
-                placeholder="EMAIL_ADDRESS" 
+                placeholder="ID@MISSION.CONTROL" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                style={{ width: '100%', padding: '12px', background: '#000', border: '1px solid #222', color: 'var(--matrix-green)', fontFamily: 'monospace', borderRadius: '4px', outline: 'none' }}
+                style={{ width: '100%', padding: '14px', background: '#000', border: '1px solid #1a1a1a', color: 'var(--matrix-green)', fontFamily: 'monospace', borderRadius: '4px', outline: 'none', boxSizing: 'border-box' }}
                 required 
               />
             </div>
             <div style={{ marginBottom: '2rem' }}>
               <input 
                 type="password" 
-                placeholder="SECRET_PASSWORD" 
+                placeholder="PASSWORD_STRING" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{ width: '100%', padding: '12px', background: '#000', border: '1px solid #222', color: 'var(--matrix-green)', fontFamily: 'monospace', borderRadius: '4px', outline: 'none' }}
+                style={{ width: '100%', padding: '14px', background: '#000', border: '1px solid #1a1a1a', color: 'var(--matrix-green)', fontFamily: 'monospace', borderRadius: '4px', outline: 'none', boxSizing: 'border-box' }}
                 required 
               />
             </div>
-            <button type="submit" className="btn-primary" style={{ width: '100%', background: 'var(--matrix-green)', color: '#000', fontWeight: 'bold', letterSpacing: '2px', padding: '14px' }}>
-              AUTHENTICATE
+            <button type="submit" className="btn-primary" style={{ width: '100%', background: 'var(--matrix-green)', color: '#000', fontWeight: 'bold', letterSpacing: '3px', padding: '16px', border: 'none', cursor: 'pointer', fontSize: '0.9rem' }}>
+              AUTH_ENTER
             </button>
           </form>
-          <div style={{ marginTop: '2rem', fontSize: '0.6rem', textAlign: 'center', color: '#222', fontFamily: 'monospace' }}>
-            ID: {Math.random().toString(36).substring(7).toUpperCase()} // SECURE_SHELL_V2
+          <div style={{ marginTop: '2.5rem', fontSize: '0.55rem', textAlign: 'center', color: '#1a1a1a', fontFamily: 'monospace', letterSpacing: '1px' }}>
+            VER: 2.0.4 // LOCAL_HOST: ENABLED // CLOUD_SYNC: ACTIVE
           </div>
         </div>
       </div>
@@ -190,7 +191,7 @@ function App() {
   }
 
   return (
-    <div className="app-container" style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="app-container" style={{ display: 'flex', minHeight: '100vh', width: '100vw' }}>
       <aside className="sidebar">
         <div className="logo">Phys<span>ICT</span> Hub</div>
         <nav style={{ flex: 1 }}>
@@ -198,12 +199,12 @@ function App() {
           <div className={`nav-item ${activeTab === 'topics' ? 'active' : ''}`} onClick={() => setActiveTab('topics')}><Activity size={18} /> Témata Výuky</div>
           <div className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}><Settings size={18} /> Nastavení</div>
         </nav>
-        <div className="nav-item" onClick={handleLogout} style={{ color: '#ff4b2b', marginTop: 'auto', border: '1px solid rgba(255,75,43,0.2)' }}>
+        <div className="nav-item" onClick={handleLogout} style={{ color: '#ff4b2b', marginTop: 'auto', border: '1px solid rgba(255,75,43,0.1)' }}>
           <LogOut size={18} /> Odhlásit se
         </div>
       </aside>
 
-      <main className="main-content">
+      <main className="main-content" style={{ flex: 1 }}>
         <header style={{ marginBottom: '2rem' }}>
           <h1 style={{ fontSize: '2.5rem', margin: 0 }}>Mission: <span className="matrix-text">Education</span></h1>
           <p style={{ color: 'var(--text-dim)' }}>Vítejte v operačním centru, {teacherName}.</p>
@@ -284,12 +285,12 @@ function App() {
             <div className="card-title">System Configuration</div>
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ display: 'block', marginBottom: '8px', color: 'var(--mi-blue)' }}>Vaše kódové jméno:</label>
-              <input type="text" value={teacherName} onChange={(e) => setTeacherName(e.target.value)} style={{ width: '100%', padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '6px' }} />
+              <input type="text" value={teacherName} onChange={(e) => setTeacherName(e.target.value)} style={{ width: '100%', padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '6px', outline: 'none' }} />
             </div>
 
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ display: 'block', marginBottom: '8px', color: 'var(--matrix-green)' }}>Seznam žáků (oddělený čárkou):</label>
-              <textarea value={studentsRaw} onChange={(e) => setStudentsRaw(e.target.value)} rows={5} style={{ width: '100%', padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '6px', fontFamily: 'monospace' }} placeholder="Petr, Jana, Martin..." />
+              <textarea value={studentsRaw} onChange={(e) => setStudentsRaw(e.target.value)} rows={5} style={{ width: '100%', padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '6px', fontFamily: 'monospace', outline: 'none' }} placeholder="Petr, Jana, Martin..." />
               <small style={{ color: 'var(--text-dim)' }}>Aktuální počet žáků: {students.length}</small>
             </div>
 
@@ -305,9 +306,9 @@ function App() {
                 a.href = URL.createObjectURL(blob);
                 a.download = `physict-hub-config.json`;
                 a.click();
-              }} style={{ flex: 1, background: '#333', color: 'white' }}><Download size={16} /> EXPORT</button>
+              }} style={{ flex: 1, background: '#1a1a1a', color: 'white' }}><Download size={16} /> EXPORT</button>
               
-              <label className="btn-primary" style={{ flex: 1, background: '#333', color: 'white', cursor: 'pointer', textAlign: 'center' }}>
+              <label className="btn-primary" style={{ flex: 1, background: '#1a1a1a', color: 'white', cursor: 'pointer', textAlign: 'center' }}>
                 <Upload size={16} /> IMPORT
                 <input type="file" accept=".json" style={{ display: 'none' }} onChange={(e) => {
                   const file = e.target.files?.[0];
