@@ -1,0 +1,34 @@
+{
+  "fyzika": [
+    {
+      "id": "fyz-1",
+      "tema": "Vlastnosti kapalin a plynů",
+      "vivid": "https://vividbooks.com/cs/fyzika/kapaliny-plyny",
+      "phet": "https://phet.colorado.edu/cs/simulations/states-of-matter",
+      "ict_propojeni": "Měření tlaku vzduchu pomocí senzoru v mobilu/tabletu a export dat do CSV."
+    },
+    {
+      "id": "fyz-2",
+      "tema": "Tepelné jevy",
+      "vivid": "https://vividbooks.com/cs/fyzika/teplo",
+      "phet": "https://phet.colorado.edu/cs/simulations/energy-forms-and-changes",
+      "ict_propojeni": "Programování digitálního teploměru s Micro:bitem a signalizací varu."
+    }
+  ],
+  "informatika": [
+    {
+      "id": "ict-1",
+      "tema": "Algoritmizace a programování",
+      "vivid": "",
+      "phet": "https://phet.colorado.edu/cs/simulations/maze-game",
+      "ict_propojeni": "Úvod do Scratch/Python - vytvoření jednoduchého simulátoru pohybu kuličky."
+    },
+    {
+      "id": "ict-2",
+      "tema": "Zpracování a prezentace dat",
+      "vivid": "",
+      "phet": "",
+      "ict_propojeni": "Práce v Excelu - analýza naměřených dat z hodin fyziky a tvorba grafů."
+    }
+  ]
+}

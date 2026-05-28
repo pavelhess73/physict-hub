@@ -9,17 +9,12 @@ import {
   Monitor,
   Download,
   Upload,
-  LogOut
+  LogOut,
+  Terminal
 } from 'lucide-react';
 import { databases, account } from './lib/appwrite';
+import curriculumData from './data/curriculum.json';
 import './App.css';
-
-// Mock data pro témata
-const topics = [
-  { id: 1, title: 'Mechanika', icon: <Activity size={20} />, vivid: 'https://vividbooks.com/cs/fyzika/mechanika', phet: 'https://phet.colorado.edu/cs/simulations/category/physics/motion' },
-  { id: 2, title: 'Optika', icon: <Monitor size={20} />, vivid: 'https://vividbooks.com/cs/fyzika/optika', phet: 'https://phet.colorado.edu/cs/simulations/category/physics/light-and-radiation' },
-  { id: 3, title: 'Elektřina', icon: <Cpu size={20} />, vivid: 'https://vividbooks.com/cs/fyzika/elektrina', phet: 'https://phet.colorado.edu/cs/simulations/category/physics/electricity-magnets-and-circuits' }
-];
 
 // Konstanty pro Appwrite
 const DB_ID = 'main_db';
@@ -39,7 +34,6 @@ function App() {
   
   const students = studentsRaw.split(',').map(s => s.trim()).filter(s => s !== '');
 
-  // Kontrola přihlášení při startu
   useEffect(() => {
     const checkUser = async () => {
       try {
@@ -73,7 +67,7 @@ function App() {
       setUser(session);
       await loadFromCloud();
     } catch (error: any) {
-      alert('Chyba přístupu: ' + error.message);
+      alert('Chyba přístupu: ' + error.message + '\n\nUjistěte se, že máte v src/lib/appwrite.ts správné Project ID.');
     }
   };
 
@@ -101,7 +95,7 @@ function App() {
       }
       alert('Cloud synchronizace byla úspěšná! 🚀');
     } catch (error) {
-      alert('Chyba synchronizace: Zkontrolujte Project ID v appwrite.ts');
+      alert('Chyba synchronizace: Zkontrolujte nastavení databáze v Appwrite.');
     } finally {
       setIsCloudSyncing(false);
     }
@@ -140,43 +134,56 @@ function App() {
     }, 1000);
   };
 
-  // --- LOADING SCREEN ---
-  if (authLoading) return <div className="app-container" style={{justifyContent:'center', alignItems:'center'}}><div className="matrix-text">INITIALIZING SYSTEM...</div></div>;
+  if (authLoading) return <div className="app-container" style={{justifyContent:'center', alignItems:'center', height: '100vh', width: '100vw'}}><div className="matrix-text">INITIALIZING SYSTEM...</div></div>;
 
-  // --- LOGIN SCREEN ---
   if (!user) {
     return (
-      <div className="app-container" style={{ justifyContent: 'center', alignItems: 'center', background: '#050505' }}>
-        <div className="glass-card" style={{ width: '350px', border: '1px solid var(--matrix-green)', boxShadow: '0 0 20px rgba(0,255,65,0.1)' }}>
-          <div className="logo" style={{ justifyContent: 'center', marginBottom: '2rem' }}>Phys<span>ICT</span> Hub</div>
-          <div className="card-title" style={{ textAlign: 'center', color: 'var(--matrix-green)' }}>RESTRICTED ACCESS</div>
+      <div className="app-container" style={{ 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh', 
+        width: '100vw',
+        background: '#050505',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        <div className="glass-card" style={{ 
+          width: '350px', 
+          border: '1px solid var(--matrix-green)', 
+          boxShadow: '0 0 30px rgba(0,255,65,0.15)',
+          padding: '2.5rem'
+        }}>
+          <div className="logo" style={{ justifyContent: 'center', marginBottom: '2rem', fontSize: '2rem' }}>Phys<span>ICT</span> Hub</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', marginBottom: '1.5rem', color: 'var(--matrix-green)', fontSize: '0.8rem', letterSpacing: '1px' }}>
+            <Terminal size={14} /> SECURITY CHECK REQUIRED
+          </div>
           <form onSubmit={handleLogin}>
             <div style={{ marginBottom: '1rem' }}>
               <input 
                 type="email" 
-                placeholder="ACCESS_EMAIL" 
+                placeholder="EMAIL_ADDRESS" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                style={{ width: '100%', padding: '12px', background: '#000', border: '1px solid #333', color: 'var(--matrix-green)', fontFamily: 'monospace', borderRadius: '4px' }}
+                style={{ width: '100%', padding: '12px', background: '#000', border: '1px solid #222', color: 'var(--matrix-green)', fontFamily: 'monospace', borderRadius: '4px', outline: 'none' }}
                 required 
               />
             </div>
-            <div style={{ marginBottom: '1.5rem' }}>
+            <div style={{ marginBottom: '2rem' }}>
               <input 
                 type="password" 
-                placeholder="ACCESS_PASSWORD" 
+                placeholder="SECRET_PASSWORD" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{ width: '100%', padding: '12px', background: '#000', border: '1px solid #333', color: 'var(--matrix-green)', fontFamily: 'monospace', borderRadius: '4px' }}
+                style={{ width: '100%', padding: '12px', background: '#000', border: '1px solid #222', color: 'var(--matrix-green)', fontFamily: 'monospace', borderRadius: '4px', outline: 'none' }}
                 required 
               />
             </div>
-            <button type="submit" className="btn-primary" style={{ width: '100%', background: 'var(--matrix-green)', color: '#000', fontWeight: 'bold', letterSpacing: '2px' }}>
-              ENTER SYSTEM
+            <button type="submit" className="btn-primary" style={{ width: '100%', background: 'var(--matrix-green)', color: '#000', fontWeight: 'bold', letterSpacing: '2px', padding: '14px' }}>
+              AUTHENTICATE
             </button>
           </form>
-          <div style={{ marginTop: '1rem', fontSize: '0.6rem', textAlign: 'center', color: '#333', fontFamily: 'monospace' }}>
-            SECURE_ENCRYPTION_ENABLED // NODE_AUTH_V1
+          <div style={{ marginTop: '2rem', fontSize: '0.6rem', textAlign: 'center', color: '#222', fontFamily: 'monospace' }}>
+            ID: {Math.random().toString(36).substring(7).toUpperCase()} // SECURE_SHELL_V2
           </div>
         </div>
       </div>
@@ -184,7 +191,7 @@ function App() {
   }
 
   return (
-    <div className="app-container">
+    <div className="app-container" style={{ display: 'flex', minHeight: '100vh' }}>
       <aside className="sidebar">
         <div className="logo">Phys<span>ICT</span> Hub</div>
         <nav style={{ flex: 1 }}>
@@ -192,7 +199,7 @@ function App() {
           <div className={`nav-item ${activeTab === 'topics' ? 'active' : ''}`} onClick={() => setActiveTab('topics')}><Activity size={18} /> Témata Výuky</div>
           <div className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}><Settings size={18} /> Nastavení</div>
         </nav>
-        <div className="nav-item" onClick={handleLogout} style={{ color: '#ff4b2b', marginTop: 'auto' }}>
+        <div className="nav-item" onClick={handleLogout} style={{ color: '#ff4b2b', marginTop: 'auto', border: '1px solid rgba(255,75,43,0.2)' }}>
           <LogOut size={18} /> Odhlásit se
         </div>
       </aside>
@@ -236,22 +243,40 @@ function App() {
         )}
 
         {activeTab === 'topics' && (
-          <div className="bento-grid">
-            {topics.map(topic => (
-              <div key={topic.id} className="glass-card">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
-                  <div style={{ color: 'var(--mi-blue)' }}>{topic.icon}</div>
-                  <h3 style={{ margin: 0 }}>{topic.title}</h3>
+          <div>
+            <h2 className="matrix-text" style={{ marginBottom: '1.5rem' }}>PHYSICS_CURRICULUM</h2>
+            <div className="bento-grid" style={{ marginBottom: '3rem' }}>
+              {curriculumData.fyzika.map(topic => (
+                <div key={topic.id} className="glass-card">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
+                    <div style={{ color: 'var(--mi-blue)' }}><Activity size={20} /></div>
+                    <h3 style={{ margin: 0 }}>{topic.tema}</h3>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px', marginBottom: '1rem' }}>
+                    {topic.vivid && <a href={topic.vivid} target="_blank" className="btn-primary" style={{ fontSize: '0.7rem', textDecoration: 'none' }}>Vividbooks</a>}
+                    {topic.phet && <a href={topic.phet} target="_blank" className="btn-primary" style={{ fontSize: '0.7rem', textDecoration: 'none', background: 'transparent', border: '1px solid var(--mi-blue)', color: 'var(--mi-blue)' }}>Simulace</a>}
+                  </div>
+                  <div style={{ padding: '10px', background: 'rgba(0,255,65,0.05)', borderRadius: '8px', borderLeft: '2px solid var(--matrix-green)' }}>
+                    <small className="matrix-text">ICT: {topic.ict_propojeni}</small>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <a href={topic.vivid} target="_blank" className="btn-primary" style={{ fontSize: '0.8rem', textDecoration: 'none' }}>Vividbooks</a>
-                  <a href={topic.phet} target="_blank" className="btn-primary" style={{ fontSize: '0.8rem', textDecoration: 'none', background: 'transparent', border: '1px solid var(--mi-blue)', color: 'var(--mi-blue)' }}>Simulace</a>
+              ))}
+            </div>
+
+            <h2 className="matrix-text" style={{ color: 'var(--matrix-green)', marginBottom: '1.5rem' }}>ICT_CURRICULUM</h2>
+            <div className="bento-grid">
+              {curriculumData.informatika.map(topic => (
+                <div key={topic.id} className="glass-card" style={{ borderColor: 'rgba(0,255,65,0.2)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
+                    <div style={{ color: 'var(--matrix-green)' }}><Cpu size={20} /></div>
+                    <h3 style={{ margin: 0 }}>{topic.tema}</h3>
+                  </div>
+                  <div style={{ padding: '10px', background: 'rgba(0,212,255,0.05)', borderRadius: '8px', borderLeft: '2px solid var(--mi-blue)' }}>
+                    <small style={{ color: 'var(--mi-blue)' }}>AKTIVITA: {topic.ict_propojeni}</small>
+                  </div>
                 </div>
-                <div style={{ marginTop: '1.5rem', padding: '10px', background: 'rgba(0,255,65,0.05)', borderRadius: '8px', borderLeft: '2px solid var(--matrix-green)' }}>
-                  <small className="matrix-text">ICT TIP: Měření senzorikou Micro:bit</small>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 
